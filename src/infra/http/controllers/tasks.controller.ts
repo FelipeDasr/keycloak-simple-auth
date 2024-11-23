@@ -15,6 +15,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+// import { Roles } from 'nest-keycloak-connect';
 import { CreateTaskDTO } from 'src/app/tasks/dtos/create-task.dto';
 import { TaskIdDTO } from 'src/app/tasks/dtos/task-id.dto';
 import { UpdateTaskDTO } from 'src/app/tasks/dtos/update-task.dto';
@@ -29,6 +30,7 @@ const tempUserId = 'tempUserId';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
+// @Roles({ roles: ['manage-account'] })
 @Controller('tasks')
 export class TasksController {
   constructor(
