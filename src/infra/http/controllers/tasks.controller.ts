@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,7 +16,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-// import { Roles } from 'nest-keycloak-connect';
+import { Request } from 'express';
+import { Roles } from 'nest-keycloak-connect';
 import { CreateTaskDTO } from 'src/app/tasks/dtos/create-task.dto';
 import { TaskIdDTO } from 'src/app/tasks/dtos/task-id.dto';
 import { UpdateTaskDTO } from 'src/app/tasks/dtos/update-task.dto';
@@ -25,12 +27,11 @@ import { DeleteTaskByIdUseCase } from 'src/app/tasks/use-cases/delete-task-by-id
 import { FindAllTasksByUserUseCase } from 'src/app/tasks/use-cases/find-all-tasks-by-user/find-all-tasks-by-user.use-case';
 import { FindTaskByIdUseCase } from 'src/app/tasks/use-cases/find-task-by-id/find-task-by-id.use-case';
 import { UpdateTaskUseCase } from 'src/app/tasks/use-cases/update-task-by/update-task-by.use-case';
-
-const tempUserId = 'tempUserId';
+import { getUserIdFromRequest } from 'src/infra/utils/user';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
-// @Roles({ roles: ['manage-account'] })
+@Roles({ roles: ['manage-account'] })
 @Controller('tasks')
 export class TasksController {
   constructor(
@@ -51,8 +52,11 @@ export class TasksController {
   })
   @HttpCode(HttpStatus.OK)
   @Post()
-  public async create(@Body() data: CreateTaskDTO) {
-    return await this.createTaskUseCase.execute(tempUserId, data);
+  public async create(@Req() req: Request, @Body() data: CreateTaskDTO) {
+    return await this.createTaskUseCase.execute(
+      getUserIdFromRequest(req),
+      data,
+    );
   }
 
   @ApiOperation({
@@ -65,8 +69,11 @@ export class TasksController {
   })
   @HttpCode(HttpStatus.OK)
   @Get(':id')
-  public async findById(@Param() params: TaskIdDTO) {
-    return await this.findTaskUseCase.execute(tempUserId, params.id);
+  public async findById(@Req() req: Request, @Param() params: TaskIdDTO) {
+    return await this.findTaskUseCase.execute(
+      getUserIdFromRequest(req),
+      params.id,
+    );
   }
 
   @ApiOperation({
@@ -79,8 +86,8 @@ export class TasksController {
   })
   @HttpCode(HttpStatus.OK)
   @Get()
-  public async findAll() {
-    return await this.findAllTasksUseCase.execute(tempUserId);
+  public async findAll(@Req() req: Request) {
+    return await this.findAllTasksUseCase.execute(getUserIdFromRequest(req));
   }
 
   @ApiOperation({
@@ -92,8 +99,16 @@ export class TasksController {
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Patch(':id')
-  public async update(@Param() params: TaskIdDTO, @Body() data: UpdateTaskDTO) {
-    return await this.updateTaskUseCase.execute(tempUserId, params.id, data);
+  public async update(
+    @Req() req: Request,
+    @Param() params: TaskIdDTO,
+    @Body() data: UpdateTaskDTO,
+  ) {
+    return await this.updateTaskUseCase.execute(
+      getUserIdFromRequest(req),
+      params.id,
+      data,
+    );
   }
 
   @ApiOperation({
@@ -105,7 +120,10 @@ export class TasksController {
   })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  public async delete(@Param() params: TaskIdDTO) {
-    return await this.deleteTaskUseCase.execute(tempUserId, params.id);
+  public async delete(@Req() req: Request, @Param() params: TaskIdDTO) {
+    return await this.deleteTaskUseCase.execute(
+      getUserIdFromRequest(req),
+      params.id,
+    );
   }
 }
